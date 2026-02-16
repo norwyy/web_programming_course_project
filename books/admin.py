@@ -4,7 +4,7 @@ from .models import Author, Genre, Series, Publisher, Book
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('id', 'full_name', 'biography')
+    list_display = ('id', 'full_name', 'biography', 'picture')
 
 
 @admin.register(Genre)
@@ -19,9 +19,9 @@ class SeriesAdmin(admin.ModelAdmin):
 
 @admin.register(Publisher)
 class PublisherAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('id', 'name', 'description')
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'year', 'author', 'genre', 'series', 'publisher')
+    list_display = ('id', 'title', 'year', 'author', 'genre', 'series', 'publisher', 'picture')

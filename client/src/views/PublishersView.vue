@@ -3,7 +3,7 @@ import { ref, onBeforeMount } from 'vue'
 import axios from 'axios'
 
 const publishers = ref([])
-const publisherToAdd = ref({ name: '' })
+const publisherToAdd = ref({ name: '', description: '' })
 const publisherToEdit = ref({})
 
 async function fetchPublishers() {
@@ -13,7 +13,7 @@ async function fetchPublishers() {
 
 async function onAdd() {
   await axios.post('/api/publishers/', { ...publisherToAdd.value })
-  publisherToAdd.value = { name: '' }
+  publisherToAdd.value = { name: '', description: '' }
   await fetchPublishers()
 }
 
@@ -41,13 +41,16 @@ onBeforeMount(fetchPublishers)
       <div class="col">
         <input v-model="publisherToAdd.name" class="form-control" placeholder="Название" required />
       </div>
+      <div class="col">
+        <input v-model="publisherToAdd.description" class="form-control" placeholder="Описание" />
+      </div>
       <div class="col-auto">
         <button type="submit" class="btn btn-primary">Добавить</button>
       </div>
     </form>
     <ul class="list-group">
       <li v-for="item in publishers" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
-        <span>{{ item.name }}</span>
+        <span>{{ item.name }} — {{ item.description || '—' }}</span>
         <span>
           <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editPublisherModal" @click="onEditClick(item)">✎</button>
           <button class="btn btn-sm btn-danger" @click="onRemove(item)">✕</button>
@@ -63,8 +66,14 @@ onBeforeMount(fetchPublishers)
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <label class="form-label">Название</label>
-            <input v-model="publisherToEdit.name" class="form-control" />
+            <div class="mb-2">
+              <label class="form-label">Название</label>
+              <input v-model="publisherToEdit.name" class="form-control" />
+            </div>
+            <div>
+              <label class="form-label">Описание</label>
+              <input v-model="publisherToEdit.description" class="form-control" />
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>

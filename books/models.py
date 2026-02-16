@@ -4,6 +4,7 @@ from django.db import models
 class Author(models.Model):
     full_name = models.TextField('ФИО')
     biography = models.TextField('Биография')
+    picture = models.ImageField('Изображение', null=True, upload_to='authors')
 
     class Meta:
         verbose_name = 'Автор'
@@ -39,6 +40,7 @@ class Series(models.Model):
 
 class Publisher(models.Model):
     name = models.TextField('Название')
+    description = models.TextField('Описание', blank=True, default='')
 
     class Meta:
         verbose_name = 'Издательство'
@@ -52,6 +54,7 @@ class Book(models.Model):
     title = models.TextField('Название')
     year = models.PositiveIntegerField('Год издания', null=True)
     description = models.TextField('Описание')
+    picture = models.ImageField('Обложка', null=True, upload_to='books')
     author = models.ForeignKey(
         Author,
         on_delete=models.CASCADE,
