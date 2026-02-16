@@ -1,8 +1,13 @@
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, computed, onBeforeMount, nextTick } from 'vue'
 import axios from 'axios'
+import { Modal } from 'bootstrap'
+import { useUserStore } from '../stores/user'
+
+const userStore = useUserStore()
 
 const authors = ref([])
+const authorStats = ref(null)
 const authorToAdd = ref({ full_name: '', biography: '' })
 const authorToEdit = ref({})
 const authorsPictureRef = ref()
@@ -12,6 +17,25 @@ const authorEditImageUrl = ref()
 const imagePreviewUrl = ref()
 const imagePreviewModal = ref()
 
+
+const filters = ref({
+  full_name: '',
+  biography: ''
+})
+
+
+const filteredAuthors = computed(() => {
+  return authors.value.filter(author => {
+    if (filters.value.full_name && !author.full_name.toLowerCase().includes(filters.value.full_name.toLowerCase())) {
+      return false
+    }
+    if (filters.value.biography && !(author.biography || '').toLowerCase().includes(filters.value.biography.toLowerCase())) {
+      return false
+    }
+    return true
+  })
+})
+
 function pictureUrl(p) {
   if (!p) return ''
   return p.startsWith('http') || p.startsWith('/') ? p : '/media/' + p
@@ -20,6 +44,11 @@ function pictureUrl(p) {
 async function fetchAuthors() {
   const { data } = await axios.get('/api/authors/')
   authors.value = data
+}
+
+async function fetchAuthorsStats() {
+  const { data } = await axios.get('/api/authors/stats/')
+  authorStats.value = data
 }
 
 function authorAddPictureChange() {
@@ -54,7 +83,7 @@ async function onAdd() {
     URL.revokeObjectURL(authorAddImageUrl.value)
     authorAddImageUrl.value = null
   }
-  await fetchAuthors()
+  await Promise.all([fetchAuthors(), fetchAuthorsStats()])
 }
 
 function onEditClick(item) {
@@ -73,27 +102,63 @@ async function onUpdate() {
   await axios.patch(`/api/authors/${authorToEdit.value.id}/`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
-  await fetchAuthors()
+  await Promise.all([fetchAuthors(), fetchAuthorsStats()])
 }
 
 async function onRemove(item) {
   await axios.delete(`/api/authors/${item.id}/`)
-  await fetchAuthors()
+  await Promise.all([fetchAuthors(), fetchAuthorsStats()])
 }
 
 function openImagePreview(url) {
+  if (!url) return
   imagePreviewUrl.value = url
-  const modal = new window.bootstrap.Modal(imagePreviewModal.value)
-  modal.show()
+  nextTick(() => {
+    try {
+      const modalElement = imagePreviewModal.value || document.getElementById('imagePreviewModal')
+      if (!modalElement) {
+        console.error('Modal element not found')
+        return
+      }
+      const existingModal = Modal.getInstance(modalElement)
+      if (existingModal) {
+        existingModal.dispose()
+      }
+      const modal = new Modal(modalElement, {
+        backdrop: true,
+        keyboard: true
+      })
+      modal.show()
+    } catch (error) {
+      console.error('Error opening modal:', error)
+    }
+  })
 }
 
-onBeforeMount(fetchAuthors)
+
+function canEdit(item) {
+  if (!userStore.user) return false
+  if (userStore.isAdmin()) return true
+  return item.user === userStore.user.id
+}
+
+onBeforeMount(async () => {
+  await Promise.all([fetchAuthors(), fetchAuthorsStats()])
+})
 </script>
 
 <template>
   <div>
-    <h2 class="mb-3">Авторы</h2>
-    <form @submit.prevent="onAdd" class="row g-2 mb-4 flex-wrap align-items-end">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Авторы</h2>
+      <div v-if="authorStats" class="text-muted">
+        Всего: <strong>{{ authorStats.count }}</strong>
+        <span v-if="authorStats.top_author_name" class="ms-3">
+          Самый продуктивный автор: <strong>{{ authorStats.top_author_name }}</strong> ({{ authorStats.top_author_books_count }} книг)
+        </span>
+      </div>
+    </div>
+    <form v-if="userStore.isAuthenticated()" @submit.prevent="onAdd" class="row g-2 mb-4 flex-wrap align-items-end">
       <div class="col">
         <label class="form-label">ФИО</label>
         <input v-model="authorToAdd.full_name" class="form-control" placeholder="ФИО" required />
@@ -119,23 +184,53 @@ onBeforeMount(fetchAuthors)
         <button type="submit" class="btn btn-primary">Добавить</button>
       </div>
     </form>
+    <div class="mb-2">
+      <strong>Фильтры</strong>
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <label class="form-label mb-1" style="font-weight: normal;">ФИО</label>
+        <input
+          v-model="filters.full_name"
+          type="text"
+          class="form-control"
+        />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label mb-1" style="font-weight: normal;">Биография</label>
+        <input
+          v-model="filters.biography"
+          type="text"
+          class="form-control"
+        />
+      </div>
+      <div class="col-auto">
+        <button
+          class="btn btn-outline-secondary"
+          @click="filters = { full_name: '', biography: '' }"
+        >
+          Очистить фильтры
+        </button>
+      </div>
+    </div>
     <ul class="list-group">
-      <li v-for="item in authors" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <span class="d-flex align-items-center gap-2">
+      <li v-for="item in filteredAuthors" :key="item.id" class="list-group-item d-flex justify-content-between align-items-start gap-2">
+        <span class="flex-grow-1" style="min-width: 0; word-break: break-word;">{{ item.full_name }} - {{ item.biography || '-' }}</span>
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
           <template v-if="item.picture">
             <img
               :src="pictureUrl(item.picture)"
               alt=""
               style="max-height: 60px; cursor: pointer;"
-              @click="openImagePreview(pictureUrl(item.picture))"
+              @click.stop="openImagePreview(pictureUrl(item.picture))"
+              @mousedown.stop
             />
           </template>
-          <span>{{ item.full_name }} — {{ item.biography || '—' }}</span>
-        </span>
-        <span>
-          <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editAuthorModal" @click="onEditClick(item)"><i class="bi bi-pen-fill"></i></button>
-          <button class="btn btn-sm btn-danger" @click="onRemove(item)"><i class="bi bi-x"></i></button>
-        </span>
+          <div v-if="canEdit(item)" class="d-flex gap-1">
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editAuthorModal" @click="onEditClick(item)"><i class="bi bi-pen-fill"></i></button>
+            <button class="btn btn-sm btn-danger" @click="onRemove(item)"><i class="bi bi-x"></i></button>
+          </div>
+        </div>
       </li>
     </ul>
 
@@ -177,11 +272,15 @@ onBeforeMount(fetchAuthors)
       </div>
     </div>
 
-    <div class="modal fade" id="imagePreviewModal" tabindex="-1" ref="imagePreviewModal">
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" ref="imagePreviewModal" data-bs-backdrop="true" data-bs-keyboard="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Предпросмотр изображения</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
           <div class="modal-body text-center p-0">
-            <img v-if="imagePreviewUrl" :src="imagePreviewUrl" alt="" class="img-fluid" style="max-height: 90vh;" />
+            <img v-if="imagePreviewUrl" :src="imagePreviewUrl" alt="" class="img-fluid" style="max-height: 90vh; width: 100%; object-fit: contain;" />
           </div>
         </div>
       </div>

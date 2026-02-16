@@ -1,8 +1,15 @@
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, computed, onBeforeMount, nextTick } from 'vue'
 import axios from 'axios'
+import { Modal } from 'bootstrap'
+import { useUserStore } from '../stores/user'
+
+const userStore = useUserStore()
+
+const currentYear = computed(() => new Date().getFullYear())
 
 const books = ref([])
+const bookStats = ref(null)
 const authors = ref([])
 const genres = ref([])
 const series = ref([])
@@ -25,6 +32,54 @@ const bookEditImageUrl = ref()
 const imagePreviewUrl = ref()
 const imagePreviewModal = ref()
 
+const filters = ref({
+  title: '',
+  year: '',
+  author: '',
+  genre: '',
+  series: '',
+  publisher: ''
+})
+
+const filteredBooks = computed(() => {
+  return books.value.filter(book => {
+    if (filters.value.title && !book.title.toLowerCase().includes(filters.value.title.toLowerCase())) {
+      return false
+    }
+    if (filters.value.year) {
+      const yearStr = String(book.year || '')
+      if (!yearStr.includes(filters.value.year)) {
+        return false
+      }
+    }
+    if (filters.value.author) {
+      const authorNameStr = (book.author?.full_name ?? '-').toLowerCase()
+      if (!authorNameStr.includes(filters.value.author.toLowerCase())) {
+        return false
+      }
+    }
+    if (filters.value.genre) {
+      const genreNameStr = (book.genre?.name ?? '-').toLowerCase()
+      if (!genreNameStr.includes(filters.value.genre.toLowerCase())) {
+        return false
+      }
+    }
+    if (filters.value.series) {
+      const seriesNameStr = (book.series?.name ?? '-').toLowerCase()
+      if (!seriesNameStr.includes(filters.value.series.toLowerCase())) {
+        return false
+      }
+    }
+    if (filters.value.publisher) {
+      const publisherNameStr = (book.publisher?.name ?? '-').toLowerCase()
+      if (!publisherNameStr.includes(filters.value.publisher.toLowerCase())) {
+        return false
+      }
+    }
+    return true
+  })
+})
+
 function pictureUrl(p) {
   if (!p) return ''
   return p.startsWith('http') || p.startsWith('/') ? p : '/media/' + p
@@ -33,6 +88,11 @@ function pictureUrl(p) {
 async function fetchBooks() {
   const { data } = await axios.get('/api/books/')
   books.value = data
+}
+
+async function fetchBooksStats() {
+  const { data } = await axios.get('/api/books/stats/')
+  bookStats.value = data
 }
 
 async function fetchOptions() {
@@ -65,20 +125,35 @@ function bookEditPictureChange() {
 }
 
 async function onAdd() {
+  if (!bookToAdd.value.author || !bookToAdd.value.genre || !bookToAdd.value.publisher) {
+    alert('Заполните все обязательные поля: Автор, Жанр, Издательство')
+    return
+  }
+
   const formData = new FormData()
   formData.set('title', bookToAdd.value.title)
-  formData.set('year', bookToAdd.value.year ?? '')
+  if (bookToAdd.value.year !== null && bookToAdd.value.year !== undefined && bookToAdd.value.year !== '') {
+    formData.set('year', String(bookToAdd.value.year))
+  }
   formData.set('description', bookToAdd.value.description || '')
-  formData.set('author', bookToAdd.value.author)
-  formData.set('genre', bookToAdd.value.genre)
-  formData.set('series', bookToAdd.value.series ?? '')
-  formData.set('publisher', bookToAdd.value.publisher)
+  formData.set('author', String(bookToAdd.value.author))
+  formData.set('genre', String(bookToAdd.value.genre))
+  if (bookToAdd.value.series !== null && bookToAdd.value.series !== undefined && bookToAdd.value.series !== '') {
+    formData.set('series', String(bookToAdd.value.series))
+  }
+  formData.set('publisher', String(bookToAdd.value.publisher))
   const file = booksPictureRef.value?.files?.[0]
   if (file) formData.append('picture', file)
 
-  await axios.post('/api/books/', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  try {
+    await axios.post('/api/books/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  } catch (error) {
+    console.error('Ошибка при создании книги:', error.response?.data || error.message)
+    alert('Ошибка: ' + (error.response?.data?.detail || JSON.stringify(error.response?.data) || error.message))
+    return
+  }
   bookToAdd.value = { title: '', year: null, description: '', author: null, genre: null, series: null, publisher: null }
   if (booksPictureRef.value) booksPictureRef.value.value = ''
   if (bookAddImageUrl.value) {
@@ -107,65 +182,109 @@ function onEditClick(item) {
 async function onUpdate() {
   const formData = new FormData()
   formData.set('title', bookToEdit.value.title)
-  formData.set('year', bookToEdit.value.year ?? '')
+  if (bookToEdit.value.year !== null && bookToEdit.value.year !== undefined && bookToEdit.value.year !== '') {
+    formData.set('year', String(bookToEdit.value.year))
+  }
   formData.set('description', bookToEdit.value.description || '')
-  formData.set('author', bookToEdit.value.author)
-  formData.set('genre', bookToEdit.value.genre)
-  formData.set('series', bookToEdit.value.series ?? '')
-  formData.set('publisher', bookToEdit.value.publisher)
+  formData.set('author', String(bookToEdit.value.author))
+  formData.set('genre', String(bookToEdit.value.genre))
+  if (bookToEdit.value.series !== null && bookToEdit.value.series !== undefined && bookToEdit.value.series !== '') {
+    formData.set('series', String(bookToEdit.value.series))
+  }
+  formData.set('publisher', String(bookToEdit.value.publisher))
   const file = bookEditPictureRef.value?.files?.[0]
   if (file) formData.append('picture', file)
 
-  await axios.patch(`/api/books/${bookToEdit.value.id}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  await fetchBooks()
+  try {
+    await axios.patch(`/api/books/${bookToEdit.value.id}/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  } catch (error) {
+    console.error('Ошибка при обновлении книги:', error.response?.data || error.message)
+    alert('Ошибка: ' + (error.response?.data?.detail || JSON.stringify(error.response?.data) || error.message))
+    return
+  }
+  cache.books = { data: null, timestamp: null }
+  await Promise.all([fetchBooks(), fetchBooksStats()])
 }
 
 async function onRemove(item) {
   await axios.delete(`/api/books/${item.id}/`)
-  await fetchBooks()
+  cache.books = { data: null, timestamp: null }
+  await Promise.all([fetchBooks(), fetchBooksStats()])
 }
 
 function authorName(book) {
-  return book.author?.full_name ?? '—'
+  return book.author?.full_name ?? '-'
 }
 
 function genreName(book) {
-  return book.genre?.name ?? '—'
+  return book.genre?.name ?? '-'
 }
 
 function seriesName(book) {
-  return book.series?.name ?? '—'
+  return book.series?.name ?? '-'
 }
 
 function publisherName(book) {
-  return book.publisher?.name ?? '—'
+  return book.publisher?.name ?? '-'
+}
+
+function canEdit(item) {
+  if (!userStore.user) return false
+  if (userStore.isAdmin()) return true
+  return item.user === userStore.user.id
 }
 
 function openImagePreview(url) {
+  if (!url) return
   imagePreviewUrl.value = url
-  const modal = new window.bootstrap.Modal(imagePreviewModal.value)
-  modal.show()
+  nextTick(() => {
+    try {
+      const modalElement = imagePreviewModal.value || document.getElementById('imagePreviewModal')
+      if (!modalElement) {
+        console.error('Modal element not found')
+        return
+      }
+      const existingModal = Modal.getInstance(modalElement)
+      if (existingModal) {
+        existingModal.dispose()
+      }
+      const modal = new Modal(modalElement, {
+        backdrop: true,
+        keyboard: true
+      })
+      modal.show()
+    } catch (error) {
+      console.error('Error opening modal:', error)
+    }
+  })
 }
 
 onBeforeMount(async () => {
-  await fetchOptions()
-  await fetchBooks()
+  await Promise.all([fetchOptions(), fetchBooks(), fetchBooksStats()])
 })
 </script>
 
 <template>
   <div>
-    <h2 class="mb-3">Книги</h2>
-    <form @submit.prevent="onAdd" class="row g-2 mb-4 flex-wrap align-items-end">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Книги</h2>
+      <div v-if="bookStats" class="text-muted">
+        Всего: <strong>{{ bookStats.count }}</strong>
+        <span v-if="bookStats.avg_year" class="ms-3">Средний год: <strong>{{ Math.round(bookStats.avg_year) }}</strong></span>
+        <span v-if="bookStats.min_year" class="ms-3">От: <strong>{{ bookStats.min_year }}</strong></span>
+        <span v-if="bookStats.max_year" class="ms-2">До: <strong>{{ bookStats.max_year }}</strong></span>
+      </div>
+    </div>
+    <form v-if="userStore.isAuthenticated()" @submit.prevent="onAdd" class="row g-2 mb-4 flex-wrap align-items-end">
       <div class="col-12 col-md">
         <label class="form-label">Название</label>
         <input v-model="bookToAdd.title" class="form-control" placeholder="Название" required />
       </div>
       <div class="col-6 col-md-1">
         <label class="form-label">Год</label>
-        <input v-model.number="bookToAdd.year" type="number" class="form-control" placeholder="Год" />
+        <input v-model.number="bookToAdd.year" type="number" class="form-control" placeholder="Год" min="1000" :max="currentYear" />
       </div>
       <div class="col-6 col-md">
         <label class="form-label">Описание</label>
@@ -216,11 +335,13 @@ onBeforeMount(async () => {
         <button type="submit" class="btn btn-primary">Добавить</button>
       </div>
     </form>
+    <div class="mb-2">
+      <strong>Фильтры</strong>
+    </div>
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th></th>
             <th>Название</th>
             <th>Год</th>
             <th>Автор</th>
@@ -229,29 +350,90 @@ onBeforeMount(async () => {
             <th>Издательство</th>
             <th></th>
           </tr>
+          <tr>
+            <th>
+              <input
+                v-model="filters.title"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Фильтр..."
+              />
+            </th>
+            <th>
+              <input
+                v-model="filters.year"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Фильтр..."
+              />
+            </th>
+            <th>
+              <input
+                v-model="filters.author"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Фильтр..."
+              />
+            </th>
+            <th>
+              <input
+                v-model="filters.genre"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Фильтр..."
+              />
+            </th>
+            <th>
+              <input
+                v-model="filters.series"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Фильтр..."
+              />
+            </th>
+            <th>
+              <input
+                v-model="filters.publisher"
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Фильтр"
+              />
+            </th>
+            <th>
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                @click="filters = { title: '', year: '', author: '', genre: '', series: '', publisher: '' }"
+                title="Очистить фильтры"
+              >
+                ✕
+              </button>
+            </th>
+          </tr>
         </thead>
         <tbody>
-          <tr v-for="item in books" :key="item.id">
-            <td>
-              <template v-if="item.picture">
-                <img
-                  :src="pictureUrl(item.picture)"
-                  alt=""
-                  style="max-height: 60px; cursor: pointer;"
-                  @click="openImagePreview(pictureUrl(item.picture))"
-                />
-              </template>
-              <span v-else class="text-muted">—</span>
-            </td>
+          <tr v-for="item in filteredBooks" :key="item.id">
             <td>{{ item.title }}</td>
-            <td>{{ item.year || '—' }}</td>
+            <td>{{ item.year || '-' }}</td>
             <td>{{ authorName(item) }}</td>
             <td>{{ genreName(item) }}</td>
             <td>{{ seriesName(item) }}</td>
             <td>{{ publisherName(item) }}</td>
             <td>
-              <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editBookModal" @click="onEditClick(item)"><i class="bi bi-pen-fill"></i></button>
-              <button class="btn btn-sm btn-danger" @click="onRemove(item)"><i class="bi bi-x"></i></button>
+              <div class="d-flex align-items-center gap-2 justify-content-end">
+                <template v-if="item.picture">
+                  <img
+                    :src="pictureUrl(item.picture)"
+                    alt=""
+                    style="max-height: 60px; cursor: pointer;"
+                    @click.stop="openImagePreview(pictureUrl(item.picture))"
+                    @mousedown.stop
+                  />
+                </template>
+                <template v-if="canEdit(item)">
+                  <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editBookModal" @click="onEditClick(item)"><i class="bi bi-pen-fill"></i></button>
+                  <button class="btn btn-sm btn-danger" @click="onRemove(item)"><i class="bi bi-x"></i></button>
+                </template>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -273,7 +455,7 @@ onBeforeMount(async () => {
               </div>
               <div class="col-6">
                 <label class="form-label">Год</label>
-                <input v-model.number="bookToEdit.year" type="number" class="form-control" />
+                <input v-model.number="bookToEdit.year" type="number" class="form-control" min="1000" :max="currentYear" />
               </div>
               <div class="col-12">
                 <label class="form-label">Описание</label>
@@ -294,7 +476,7 @@ onBeforeMount(async () => {
               <div class="col-6">
                 <label class="form-label">Серия</label>
                 <select v-model="bookToEdit.series" class="form-select">
-                  <option :value="null">—</option>
+                  <option :value="null">-</option>
                   <option v-for="s in series" :key="s.id" :value="s.id">{{ s.name }}</option>
                 </select>
               </div>
@@ -327,11 +509,15 @@ onBeforeMount(async () => {
       </div>
     </div>
 
-    <div class="modal fade" id="imagePreviewModal" tabindex="-1" ref="imagePreviewModal">
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" ref="imagePreviewModal" data-bs-backdrop="true" data-bs-keyboard="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Предпросмотр изображения</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
           <div class="modal-body text-center p-0">
-            <img v-if="imagePreviewUrl" :src="imagePreviewUrl" alt="" class="img-fluid" style="max-height: 90vh;" />
+            <img v-if="imagePreviewUrl" :src="imagePreviewUrl" alt="" class="img-fluid" style="max-height: 90vh; width: 100%; object-fit: contain;" />
           </div>
         </div>
       </div>

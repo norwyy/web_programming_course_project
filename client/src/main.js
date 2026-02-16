@@ -10,6 +10,10 @@ import Cookies from 'js-cookie'
 import App from './App.vue'
 import router from './router'
 
+axios.defaults.withCredentials = true
+axios.defaults.xsrfCookieName = 'csrftoken'
+axios.defaults.xsrfHeaderName = 'X-CSRFToken'
+
 axios.interceptors.request.use((config) => {
   const token = Cookies.get('csrftoken')
   if (token) config.headers['X-CSRFToken'] = token

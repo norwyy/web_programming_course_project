@@ -1,10 +1,13 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from datetime import datetime
 
 
 class Author(models.Model):
     full_name = models.TextField('ФИО')
     biography = models.TextField('Биография')
     picture = models.ImageField('Изображение', null=True, upload_to='authors')
+    user = models.ForeignKey('auth.User', verbose_name='Пользователь', on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Автор'
@@ -17,6 +20,7 @@ class Author(models.Model):
 class Genre(models.Model):
     name = models.TextField('Название')
     description = models.TextField('Описание')
+    user = models.ForeignKey('auth.User', verbose_name='Пользователь', on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Жанр'
@@ -29,6 +33,7 @@ class Genre(models.Model):
 class Series(models.Model):
     name = models.TextField('Название')
     description = models.TextField('Описание')
+    user = models.ForeignKey('auth.User', verbose_name='Пользователь', on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Серия'
@@ -41,6 +46,7 @@ class Series(models.Model):
 class Publisher(models.Model):
     name = models.TextField('Название')
     description = models.TextField('Описание', blank=True, default='')
+    user = models.ForeignKey('auth.User', verbose_name='Пользователь', on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Издательство'
@@ -52,7 +58,11 @@ class Publisher(models.Model):
 
 class Book(models.Model):
     title = models.TextField('Название')
-    year = models.PositiveIntegerField('Год издания', null=True)
+    year = models.PositiveIntegerField(
+        'Год издания',
+        null=True,
+        validators=[MinValueValidator(1000), MaxValueValidator(datetime.now().year)]
+    )
     description = models.TextField('Описание')
     picture = models.ImageField('Обложка', null=True, upload_to='books')
     author = models.ForeignKey(
@@ -80,6 +90,7 @@ class Book(models.Model):
         related_name='books',
         verbose_name='Издательство'
     )
+    user = models.ForeignKey('auth.User', verbose_name='Пользователь', on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Книга'

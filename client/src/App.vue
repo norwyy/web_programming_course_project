@@ -1,11 +1,47 @@
 <script setup>
-import { onBeforeMount } from 'vue'
+import { onBeforeMount, onMounted, computed, ref, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import Cookies from 'js-cookie'
+import { useUserStore } from './stores/user'
 
-onBeforeMount(() => {
+const router = useRouter()
+const userStore = useUserStore()
+const showDropdown = ref(false)
+const dropdownRef = ref(null)
+
+onBeforeMount(async () => {
   axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken')
+  try {
+    await userStore.fetchCurrentUser()
+  } catch (err) {
+  }
 })
+
+onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+      showDropdown.value = false
+    }
+  })
+})
+
+const isAuthenticated = computed(() => userStore.isAuthenticated())
+const currentUser = computed(() => userStore.user)
+
+function toggleDropdown() {
+  showDropdown.value = !showDropdown.value
+}
+
+async function handleLogout() {
+  showDropdown.value = false
+  try {
+    await userStore.logout()
+    router.push('/login')
+  } catch (err) {
+    console.error('Ошибка при выходе:', err)
+  }
+}
 </script>
 
 <template>
@@ -37,11 +73,27 @@ onBeforeMount(() => {
             </li>
           </ul>
           <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Пользователь</a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/admin">Админка</a></li>
+            <li v-if="isAuthenticated" ref="dropdownRef" class="nav-item dropdown">
+              <a 
+                class="nav-link dropdown-toggle" 
+                href="#" 
+                role="button" 
+                @click.prevent="toggleDropdown"
+              >
+                {{ currentUser?.username || 'Пользователь' }}
+              </a>
+              <ul v-show="showDropdown" class="dropdown-menu dropdown-menu-end show">
+                <li v-if="currentUser?.is_superuser">
+                  <a class="dropdown-item" href="/admin" target="_blank">Админка</a>
+                </li>
+                <li v-if="currentUser?.is_superuser"><hr class="dropdown-divider"></li>
+                <li>
+                  <a class="dropdown-item" href="#" @click.prevent="handleLogout">Выйти</a>
+                </li>
               </ul>
+            </li>
+            <li v-else class="nav-item">
+              <RouterLink to="/login" class="nav-link">Войти</RouterLink>
             </li>
           </ul>
         </div>
