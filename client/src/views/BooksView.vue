@@ -163,7 +163,7 @@ async function onAdd() {
   await fetchBooks()
 }
 
-function onEditClick(item) {
+function onEdit(item) {
   bookToEdit.value = {
     id: item.id,
     title: item.title,
@@ -356,7 +356,6 @@ onBeforeMount(async () => {
                 v-model="filters.title"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Фильтр..."
               />
             </th>
             <th>
@@ -364,7 +363,6 @@ onBeforeMount(async () => {
                 v-model="filters.year"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Фильтр..."
               />
             </th>
             <th>
@@ -372,7 +370,6 @@ onBeforeMount(async () => {
                 v-model="filters.author"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Фильтр..."
               />
             </th>
             <th>
@@ -380,7 +377,6 @@ onBeforeMount(async () => {
                 v-model="filters.genre"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Фильтр..."
               />
             </th>
             <th>
@@ -388,7 +384,6 @@ onBeforeMount(async () => {
                 v-model="filters.series"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Фильтр..."
               />
             </th>
             <th>
@@ -396,7 +391,6 @@ onBeforeMount(async () => {
                 v-model="filters.publisher"
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Фильтр"
               />
             </th>
             <th>
@@ -430,7 +424,7 @@ onBeforeMount(async () => {
                   />
                 </template>
                 <template v-if="canEdit(item)">
-                  <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editBookModal" @click="onEditClick(item)"><i class="bi bi-pen-fill"></i></button>
+                  <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editBookModal" @click="onEdit(item)"><i class="bi bi-pen-fill"></i></button>
                   <button class="btn btn-sm btn-danger" @click="onRemove(item)"><i class="bi bi-x"></i></button>
                 </template>
               </div>

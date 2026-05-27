@@ -86,7 +86,7 @@ async function onAdd() {
   await Promise.all([fetchAuthors(), fetchAuthorsStats()])
 }
 
-function onEditClick(item) {
+function onEdit(item) {
   authorToEdit.value = { ...item }
   authorEditImageUrl.value = item.picture ? pictureUrl(item.picture) : null
   if (authorEditPictureRef.value) authorEditPictureRef.value.value = ''
@@ -227,7 +227,7 @@ onBeforeMount(async () => {
             />
           </template>
           <div v-if="canEdit(item)" class="d-flex gap-1">
-            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editAuthorModal" @click="onEditClick(item)"><i class="bi bi-pen-fill"></i></button>
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#editAuthorModal" @click="onEdit(item)"><i class="bi bi-pen-fill"></i></button>
             <button class="btn btn-sm btn-danger" @click="onRemove(item)"><i class="bi bi-x"></i></button>
           </div>
         </div>

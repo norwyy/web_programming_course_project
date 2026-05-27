@@ -43,7 +43,7 @@ async function onAdd() {
   await Promise.all([fetchPublishers(), fetchPublishersStats()])
 }
 
-function onEditClick(item) {
+function onEdit(item) {
   publisherToEdit.value = { ...item }
 }
 
@@ -120,7 +120,7 @@ onBeforeMount(async () => {
       <li v-for="item in filteredPublishers" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
         <span>{{ item.name }} - {{ item.description || '-' }}</span>
         <span v-if="canEdit(item)">
-          <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editPublisherModal" @click="onEditClick(item)">✎</button>
+          <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editPublisherModal" @click="onEdit(item)">✎</button>
           <button class="btn btn-sm btn-danger" @click="onRemove(item)">✕</button>
         </span>
       </li>

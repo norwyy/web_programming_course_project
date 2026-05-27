@@ -10,11 +10,11 @@ from .api import (
 from .auth_api import current_user, login_view, logout_view
 
 router = DefaultRouter()
-router.register(r'authors', AuthorViewSet)
-router.register(r'genres', GenreViewSet)
-router.register(r'series', SeriesViewSet)
-router.register(r'publishers', PublisherViewSet)
-router.register(r'books', BookViewSet)
+router.register('authors', AuthorViewSet)
+router.register('genres', GenreViewSet)
+router.register('series', SeriesViewSet)
+router.register('publishers', PublisherViewSet)
+router.register('books', BookViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

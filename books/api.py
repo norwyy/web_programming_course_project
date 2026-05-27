@@ -1,7 +1,6 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
 from django.db.models import Count, Avg, Max, Min
 from django.contrib.auth.models import User
 from .models import Author, Genre, Series, Publisher, Book
@@ -46,14 +45,6 @@ class AuthorViewSet(viewsets.ModelViewSet):
             else:
                 qs = qs.none()
         return qs
-
-    def get_object(self):
-        obj = super().get_object()
-        if self.action in ('update', 'partial_update', 'destroy'):
-            if self.request.user.is_authenticated and not self.request.user.is_superuser:
-                if obj.user != self.request.user:
-                    raise PermissionDenied("У вас нет прав для выполнения этого действия.")
-        return obj
 
     @action(detail=False, methods=['GET'], url_path='stats')
     def get_stats(self, request):
@@ -115,14 +106,6 @@ class GenreViewSet(viewsets.ModelViewSet):
         serializer = GenreStatsSerializer(instance=stats)
         return Response(serializer.data)
 
-    def get_object(self):
-        obj = super().get_object()
-        if self.action in ('update', 'partial_update', 'destroy'):
-            if self.request.user.is_authenticated and not self.request.user.is_superuser:
-                if obj.user != self.request.user:
-                    raise PermissionDenied("У вас нет прав для выполнения этого действия.")
-        return obj
-
 
 class SeriesViewSet(viewsets.ModelViewSet):
     queryset = Series.objects.all()
@@ -158,14 +141,6 @@ class SeriesViewSet(viewsets.ModelViewSet):
         serializer = SeriesStatsSerializer(instance=stats)
         return Response(serializer.data)
 
-    def get_object(self):
-        obj = super().get_object()
-        if self.action in ('update', 'partial_update', 'destroy'):
-            if self.request.user.is_authenticated and not self.request.user.is_superuser:
-                if obj.user != self.request.user:
-                    raise PermissionDenied("У вас нет прав для выполнения этого действия.")
-        return obj
-
 
 class PublisherViewSet(viewsets.ModelViewSet):
     queryset = Publisher.objects.all()
@@ -200,14 +175,6 @@ class PublisherViewSet(viewsets.ModelViewSet):
         stats = qs.aggregate(count=Count('*'))
         serializer = PublisherStatsSerializer(instance=stats)
         return Response(serializer.data)
-
-    def get_object(self):
-        obj = super().get_object()
-        if self.action in ('update', 'partial_update', 'destroy'):
-            if self.request.user.is_authenticated and not self.request.user.is_superuser:
-                if obj.user != self.request.user:
-                    raise PermissionDenied("У вас нет прав для выполнения этого действия.")
-        return obj
 
 
 class BookViewSet(viewsets.ModelViewSet):
@@ -252,11 +219,3 @@ class BookViewSet(viewsets.ModelViewSet):
         )
         serializer = BookStatsSerializer(instance=stats)
         return Response(serializer.data)
-
-    def get_object(self):
-        obj = super().get_object()
-        if self.action in ('update', 'partial_update', 'destroy'):
-            if self.request.user.is_authenticated and not self.request.user.is_superuser:
-                if obj.user != self.request.user:
-                    raise PermissionDenied("У вас нет прав для выполнения этого действия.")
-        return obj

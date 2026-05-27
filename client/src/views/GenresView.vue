@@ -43,7 +43,7 @@ async function onAdd() {
   await Promise.all([fetchGenres(), fetchGenresStats()])
 }
 
-function onEditClick(item) {
+function onEdit(item) {
   genreToEdit.value = { ...item }
 }
 
@@ -123,7 +123,7 @@ onBeforeMount(async () => {
       <li v-for="item in filteredGenres" :key="item.id" class="list-group-item d-flex justify-content-between align-items-center">
         <span>{{ item.name }} - {{ item.description || '-' }}</span>
         <span v-if="canEdit(item)">
-          <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editGenreModal" @click="onEditClick(item)">✎</button>
+          <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal" data-bs-target="#editGenreModal" @click="onEdit(item)">✎</button>
           <button class="btn btn-sm btn-danger" @click="onRemove(item)">✕</button>
         </span>
       </li>
