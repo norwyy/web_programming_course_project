@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
@@ -6,7 +7,17 @@ from rest_framework.test import APITestCase
 from .models import Author, Genre, Series, Publisher, Book
 
 
-class TestAuthorViewSet(APITestCase):
+class AuthenticatedAPITestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='admin',
+        )
+        self.client.force_authenticate(user=self.user)
+
+
+class TestAuthorViewSet(AuthenticatedAPITestCase):
     def test_list(self):
         baker.make(Author, _quantity=3)
         url = reverse('author-list')
@@ -48,7 +59,7 @@ class TestAuthorViewSet(APITestCase):
         self.assertFalse(Author.objects.filter(pk=author.pk).exists())
 
 
-class TestGenreViewSet(APITestCase):
+class TestGenreViewSet(AuthenticatedAPITestCase):
     def test_list(self):
         baker.make(Genre, _quantity=5)
         url = reverse('genre-list')
@@ -90,7 +101,7 @@ class TestGenreViewSet(APITestCase):
         self.assertFalse(Genre.objects.filter(pk=genre.pk).exists())
 
 
-class TestSeriesViewSet(APITestCase):
+class TestSeriesViewSet(AuthenticatedAPITestCase):
     def test_list(self):
         baker.make(Series, _quantity=2)
         url = reverse('series-list')
@@ -132,7 +143,7 @@ class TestSeriesViewSet(APITestCase):
         self.assertFalse(Series.objects.filter(pk=series.pk).exists())
 
 
-class TestPublisherViewSet(APITestCase):
+class TestPublisherViewSet(AuthenticatedAPITestCase):
     def test_list(self):
         baker.make(Publisher, _quantity=4)
         url = reverse('publisher-list')
@@ -174,7 +185,7 @@ class TestPublisherViewSet(APITestCase):
         self.assertFalse(Publisher.objects.filter(pk=publisher.pk).exists())
 
 
-class TestBookViewSet(APITestCase):
+class TestBookViewSet(AuthenticatedAPITestCase):
     def test_list(self):
         author = baker.make(Author)
         genre = baker.make(Genre)
