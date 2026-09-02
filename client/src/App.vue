@@ -45,8 +45,8 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="container-fluid py-3">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-3">
+  <div class="container-fluid py-2">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded mb-2">
       <div class="container-fluid">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Меню">
           <span class="navbar-toggler-icon"></span>

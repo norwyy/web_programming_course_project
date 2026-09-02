@@ -4,19 +4,7 @@ from rest_framework.response import Response
 from django.db.models import Count, Avg, Max, Min
 from django.contrib.auth.models import User
 from .models import Author, Genre, Series, Publisher, Book
-from .serializers import (
-    AuthorSerializer,
-    GenreSerializer,
-    SeriesSerializer,
-    PublisherSerializer,
-    BookSerializer,
-    BookWriteSerializer,
-    AuthorStatsSerializer,
-    GenreStatsSerializer,
-    SeriesStatsSerializer,
-    PublisherStatsSerializer,
-    BookStatsSerializer,
-)
+from .serializers import *
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
