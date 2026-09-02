@@ -282,7 +282,7 @@ onBeforeMount(async () => {
         <label class="form-label">Название</label>
         <input v-model="bookToAdd.title" class="form-control" placeholder="Название" required />
       </div>
-      <div class="col-6 col-md-1">
+      <div class="col-6 col-1">
         <label class="form-label">Год</label>
         <input v-model.number="bookToAdd.year" type="number" class="form-control" placeholder="Год" min="1000" :max="currentYear" />
       </div>
@@ -297,7 +297,7 @@ onBeforeMount(async () => {
           <option v-for="a in authors" :key="a.id" :value="a.id">{{ a.full_name }}</option>
         </select>
       </div>
-      <div class="col-6 col-md">
+      <div class="col-6 яяя">
         <label class="form-label">Жанр</label>
         <select v-model="bookToAdd.genre" class="form-select" required>
           <option :value="null">Жанр</option>
