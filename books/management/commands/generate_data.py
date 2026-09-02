@@ -11,19 +11,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         fake = Faker(['ru_RU'])
         
-        user, created = User.objects.get_or_create(
-            username='user1',
-            defaults={
-                'is_staff': False,
-            }
-        )
-        if created:
-            user.set_password('user1')
-            user.save()
-
+        user = User.objects.get(username='user1')
         
-        
-
         authors_to_create = []
         for _ in range(500):
             authors_to_create.append(Author(
