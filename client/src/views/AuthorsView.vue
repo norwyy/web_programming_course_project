@@ -272,7 +272,7 @@ onBeforeMount(async () => {
       </div>
     </div>
 
-    <div class="modal fade" id="imagePreviewModal" tabindex="-1" ref="imagePreviewModal" data-bs-backdrop="true" data-bs-keyboard="true">
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" ref="imagePreviewModal">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
           <div class="modal-header">
