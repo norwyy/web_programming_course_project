@@ -79,8 +79,7 @@ class Command(BaseCommand):
                 if random.random() < 0.9:
                     year = random.randint(1800, 2026)
                 else:
-
-                    year = random.randint(1000, datetime.now().year) if random.random() > 0.1 else None
+                    year = random.randint(1000,1800)
                 
                 author = authors_list[author_index % len(authors_list)]
                 author_index += 1
@@ -104,7 +103,7 @@ class Command(BaseCommand):
             if random.random() < 0.9:
                 year = random.randint(1800, 2026)
             else:
-                year = random.randint(1000, datetime.now().year) if random.random() > 0.1 else None
+                year = random.randint(1000, datetime.now().year)
             
             author = authors_list[author_index % len(authors_list)]
             author_index += 1

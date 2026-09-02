@@ -29,7 +29,7 @@ async function handleLogin() {
 <template>
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-md-6 col-lg-4">
+      <div class="col-4">
         <div class="card mt-5">
           <div class="card-body">
             <h2 class="card-title text-center mb-4">Авторизация</h2>

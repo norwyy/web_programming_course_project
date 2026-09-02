@@ -188,7 +188,7 @@ onBeforeMount(async () => {
       <strong>Фильтры</strong>
     </div>
     <div class="row g-2 mb-3">
-      <div class="col-md-6">
+      <div class="col-6">
         <label class="form-label mb-1" style="font-weight: normal;">ФИО</label>
         <input
           v-model="filters.full_name"
@@ -196,7 +196,7 @@ onBeforeMount(async () => {
           class="form-control"
         />
       </div>
-      <div class="col-md-6">
+      <div class="col-6">
         <label class="form-label mb-1" style="font-weight: normal;">Биография</label>
         <input
           v-model="filters.biography"

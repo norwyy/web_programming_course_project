@@ -10,12 +10,8 @@ const userStore = useUserStore()
 const showDropdown = ref(false)
 const dropdownRef = ref(null)
 
-onBeforeMount(async () => {
-  axios.defaults.headers.common['X-CSRFToken'] = Cookies.get('csrftoken')
-  try {
-    await userStore.fetchCurrentUser()
-  } catch (err) {
-  }
+onBeforeMount(() => {
+  axios.defaults.headers.common['X-CSRFToken'] = Cookies.get("csrftoken");
 })
 
 onMounted(() => {
@@ -42,6 +38,8 @@ async function handleLogout() {
     console.error('Ошибка при выходе:', err)
   }
 }
+
+
 </script>
 
 <template>

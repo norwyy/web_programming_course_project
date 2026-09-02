@@ -278,40 +278,40 @@ onBeforeMount(async () => {
       </div>
     </div>
     <form v-if="userStore.isAuthenticated()" @submit.prevent="onAdd" class="row g-2 mb-4 flex-wrap align-items-end">
-      <div class="col-12 col-md">
+      <div class="col">
         <label class="form-label">Название</label>
         <input v-model="bookToAdd.title" class="form-control" placeholder="Название" required />
       </div>
-      <div class="col-6 col-1">
+      <div class="col">
         <label class="form-label">Год</label>
         <input v-model.number="bookToAdd.year" type="number" class="form-control" placeholder="Год" min="1000" :max="currentYear" />
       </div>
-      <div class="col-6 col-md">
+      <div class="col">
         <label class="form-label">Описание</label>
         <input v-model="bookToAdd.description" class="form-control" placeholder="Описание" />
       </div>
-      <div class="col-6 col-md">
+      <div class="col">
         <label class="form-label">Автор</label>
         <select v-model="bookToAdd.author" class="form-select" required>
           <option :value="null">Автор</option>
           <option v-for="a in authors" :key="a.id" :value="a.id">{{ a.full_name }}</option>
         </select>
       </div>
-      <div class="col-6 яяя">
+      <div class="col">
         <label class="form-label">Жанр</label>
         <select v-model="bookToAdd.genre" class="form-select" required>
           <option :value="null">Жанр</option>
           <option v-for="g in genres" :key="g.id" :value="g.id">{{ g.name }}</option>
         </select>
       </div>
-      <div class="col-6 col-md">
+      <div class="col">
         <label class="form-label">Серия</label>
         <select v-model="bookToAdd.series" class="form-select">
           <option :value="null">Серия</option>
           <option v-for="s in series" :key="s.id" :value="s.id">{{ s.name }}</option>
         </select>
       </div>
-      <div class="col-6 col-md">
+      <div class="col">
         <label class="form-label">Издательство</label>
         <select v-model="bookToAdd.publisher" class="form-select" required>
           <option :value="null">Издательство</option>

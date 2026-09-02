@@ -11,7 +11,7 @@ export const useUserStore = defineStore('user', () => {
     isLoading.value = true
     error.value = null
     try {
-      const { data } = await axios.get('/api/auth/current-user/')
+      const { data } = await axios.get('/api/auth/me/')
       user.value = data
       return data
     } catch (err) {
