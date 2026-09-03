@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeMount, onMounted, computed, ref, nextTick } from 'vue'
+import { onBeforeMount, onMounted, computed, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import Cookies from 'js-cookie'
