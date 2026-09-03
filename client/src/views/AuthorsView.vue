@@ -154,7 +154,7 @@ onBeforeMount(async () => {
       <div v-if="authorStats" class="text-muted">
         Всего: <strong>{{ authorStats.count }}</strong>
         <span v-if="authorStats.top_author_name" class="ms-3">
-          Самый продуктивный автор: <strong>{{ authorStats.top_author_name }}</strong> ({{ authorStats.top_author_books_count }} книг)
+          Самый продуктивный автор: <strong>{{ authorStats.top_author_name }}</strong> ({{ authorStats.top_author_name_count}} книг)
         </span>
       </div>
     </div>

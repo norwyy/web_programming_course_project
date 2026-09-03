@@ -75,7 +75,7 @@ onBeforeMount(async () => {
       <div v-if="genreStats" class="text-muted">
         Всего: <strong>{{ genreStats.count }}</strong>
         <span v-if="genreStats.top_genre_name" class="ms-3">
-          Самый популярный жанр: <strong>{{ genreStats.top_genre_name }}</strong> 45 книг
+          Самый популярный жанр: <strong>{{ genreStats.top_genre_name }}</strong> {{genreStats.top_genre_name_count}} книг
         </span>
       </div>
     </div>

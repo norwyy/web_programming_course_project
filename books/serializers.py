@@ -96,13 +96,13 @@ class BookWriteSerializer(serializers.ModelSerializer):
 class AuthorStatsSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     top_author_name = serializers.CharField(allow_null=True)
-    top_author_books_count = serializers.IntegerField(allow_null=True)
+    top_author_name_count = serializers.IntegerField(allow_null=True)
 
 
 class GenreStatsSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     top_genre_name = serializers.CharField(allow_null=True)
-    top_genre_books_count = serializers.IntegerField(allow_null=True)
+    top_genre_name_count = serializers.IntegerField(allow_null=True)
 
 
 class SeriesStatsSerializer(serializers.Serializer):
